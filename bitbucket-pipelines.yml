@@ -1,0 +1,38 @@
+image: atlassian/default-image:3
+
+pipelines:
+  branches:
+    master:
+      # - step:
+      #     name: Send Slack Notification - Deploy Started
+      #     script:
+      #       - echo "Send Slack Notification with CURL - Deploy Started"
+      #       - curl --location "http://slack.aiaracorp.com:28000/api/v1/startDeploy" --header "Content-Type:application/json" --data '{"name":"Luxrobo-Cloud-backend","code":"LX","message":"럭스로보 클라우드 서버 배포를 시작합니다."}'
+
+      - step:
+          name: Build and Test
+          script:
+            - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+            - docker build --no-cache --rm -f Dockerfile -t pinomaker/luxrobo-cloud-was:latest .
+            - docker push pinomaker/luxrobo-cloud-was:latest
+          services:
+            - docker
+          caches:
+            - docker
+
+      - step:
+          name: Deploy to Production
+          deployment: Production
+          script:
+            - chmod 400 luxrobo-dev.pem
+            - ssh-keyscan 13.125.92.61 >> ~/.ssh/known_hosts
+            - ssh -i luxrobo-dev.pem ubuntu@13.125.92.61 "sudo docker container rm -f luxrobo-cloud-was && sudo docker image rm pinomaker/luxrobo-cloud-was:latest && sudo docker pull pinomaker/luxrobo-cloud-was:latest && sudo docker run -d -p 8080:8080 --name luxrobo-cloud-was pinomaker/luxrobo-cloud-was:latest"
+            - echo 'DONE DEPLOY LIVE'
+          services:
+            - docker
+
+      # - step:
+      #     name: Send Slack Notification - Deploy Successful
+      #     script:
+      #       - echo "Send Slack Notification with CURL - Deploy Successful"
+      #       - curl --location "http://slack.aiaracorp.com:28000/api/v1/endDeploy" --header "Content-Type:application/json" --data '{"name":"Luxrobo-Cloud-backend","code":"LX","message":"럭스로보 클라우드 서버 배포를 성공했습니다."}'

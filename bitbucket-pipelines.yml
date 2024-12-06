@@ -1,20 +1,21 @@
 image: atlassian/default-image:3
 
+options:
+  size: 2x
+definitions:
+  services:
+    docker:
+      memory: 5120
+
 pipelines:
   branches:
-    master:
-      # - step:
-      #     name: Send Slack Notification - Deploy Started
-      #     script:
-      #       - echo "Send Slack Notification with CURL - Deploy Started"
-      #       - curl --location "http://slack.aiaracorp.com:28000/api/v1/startDeploy" --header "Content-Type:application/json" --data '{"name":"Luxrobo-Cloud-backend","code":"LX","message":"럭스로보 클라우드 서버 배포를 시작합니다."}'
-
+    develop:
       - step:
           name: Build and Test
           script:
             - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-            - docker build --no-cache --rm -f Dockerfile -t pinomaker/luxrobo-cloud-was:latest .
-            - docker push pinomaker/luxrobo-cloud-was:latest
+            - docker build --no-cache --rm -f Dockerfile -t aiaracorp1/storebar-admin-backend:latest .
+            - docker push aiaracorp1/storebar-admin-backend:latest
           services:
             - docker
           caches:
@@ -24,15 +25,17 @@ pipelines:
           name: Deploy to Production
           deployment: Production
           script:
-            - chmod 400 luxrobo-dev.pem
-            - ssh-keyscan 13.125.92.61 >> ~/.ssh/known_hosts
-            - ssh -i luxrobo-dev.pem ubuntu@13.125.92.61 "sudo docker container rm -f luxrobo-cloud-was && sudo docker image rm pinomaker/luxrobo-cloud-was:latest && sudo docker pull pinomaker/luxrobo-cloud-was:latest && sudo docker run -d -p 8080:8080 --name luxrobo-cloud-was pinomaker/luxrobo-cloud-was:latest"
+            - chmod 400 aiaracorp.pem
+            - ssh-keyscan $AIARA_IP >> ~/.ssh/known_hosts
+            - scp -i aiaracorp.pem -r ./kubernetes/* aiara@$AIARA_IP:/home/aiara/service/storebar/admin
+            - ssh -i aiaracorp.pem aiara@$AIARA_IP "sh -f service/storebar/admin/storebar-admin.sh"
             - echo 'DONE DEPLOY LIVE'
           services:
             - docker
+          when: on_success
 
-      # - step:
-      #     name: Send Slack Notification - Deploy Successful
-      #     script:
-      #       - echo "Send Slack Notification with CURL - Deploy Successful"
-      #       - curl --location "http://slack.aiaracorp.com:28000/api/v1/endDeploy" --header "Content-Type:application/json" --data '{"name":"Luxrobo-Cloud-backend","code":"LX","message":"럭스로보 클라우드 서버 배포를 성공했습니다."}'
+      - step:
+          name: Send Slack Notification - Deploy End
+          script:
+            - echo "Send Slack Notification with CURL - Deploy End"
+            - curl --location "https://slack.aiaracorp.com/api/v1/deploy" --header "Content-Type:application/json" --data '{"name":"STOREBAR-ADMIN-BACKEND","code":"STOREBAR-ADMIN","message":"STOREBAR-ADMIN-BACKEND 배포가 완료되었습니다."}'

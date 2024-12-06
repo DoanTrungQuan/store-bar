@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  labels:
+    app: storebar-admin-backend
+  name: storebar-admin-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storebar-admin-backend
+  template:
+    metadata:
+      labels:
+        app: storebar-admin-backend
+    spec:
+      containers:
+        - name: storebar-admin-backend
+          image: aiaracorp1/storebar-admin-backend:latest
+          ports:
+            - containerPort: 8080

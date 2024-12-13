@@ -128,4 +128,16 @@ export default class AuthService {
   public async findRefreshToken({ id }: JwtPayload) {
     return await this.userRepository.findOne({ where: { id } });
   }
+
+  public async loginKakaotalk() {
+    return {msg: "Login kakaotalk"}
+  }
+
+  public async loginKakaotalkCallback(code: string) {
+    return {msg: "Login kakaotalk callback with code: " + code}
+  }
+
+  public async logout(refreshToken: string) {
+    return {msg: "Logout for refreshToken: " + refreshToken}
+  }
 }

@@ -55,4 +55,30 @@ export const AuthResponse = {
       message: '토큰을 재발급합니다.',
     }),
   },
+  kakaotalkCallback: {
+    200: createResponse({
+      data: {
+        accessToken:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjk1NTcxMjM2LCJleHAiOjE2OTU1NzQ4MzZ9.IAu_paMVmVSrPtNPfi4lNTUw9kIHBWEo8If9WbCxcBY',
+      },
+      statusCode: 200,
+      message: '토큰을 재발급합니다.',
+    }),
+    400: createErrorResponse({
+      statusCode: 400,
+      message: '입력 데이터가 유효하지 않습니다.',
+      error: 'BAD REQUEST',
+    }),
+  },
+  logout: {
+    200: createMessageResponse({
+      statusCode: 200,
+      message: '로그아웃 성공.',
+    }),
+    400: createErrorResponse({
+      statusCode: 400,
+      message: '로그아웃하기 전에 로그인해야 합니다.',
+      error: 'BAD REQUEST',
+    }),
+  },
 };

@@ -1,5 +1,5 @@
 // ** Nest Imports
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Redirect, Headers } from '@nestjs/common';
 
 // ** Module Imports
 import AuthService from '../service/auth.service';
@@ -21,6 +21,7 @@ import RequestUserReissueDto from '../dto/user.reissue.dto';
 import User from '../../user/domain/user.entity';
 import RequestUserLoginDto from '../dto/user.login.dto';
 import RequestUserSaveDto from '../dto/user.save.dto';
+import KakaoCallbackDto from '../dto/user.kakaocallback.dto';
 
 // ** Utils Imports
 import JwtRefreshGuard from '../passport/auth.jwt-refresh.guard';
@@ -59,5 +60,30 @@ export default class AuthController {
   @Post('/reissue')
   public async reissueToken(@GetUser() user: User) {
     return await this.authService.reissueToken(user);
+  }
+
+  // @ApiOperation({ summary: '카카오톡으로 로그인 - coming soon' })
+  // @Get('/login-kakaotalk')
+  // @Redirect("https://kakaotalk_login_url")
+  // public async loginKakaotalk() {
+  //   return await this.authService.loginKakaotalk();
+  // }
+
+  @ApiOperation({ summary: '카카오톡 콜백으로 로그인 - coming soon' })
+  @ApiBody({ type: KakaoCallbackDto })
+  @ApiResponse(AuthResponse.kakaotalkCallback[200])
+  @ApiResponse(AuthResponse.kakaotalkCallback[400])
+  @Post('/login-kakaotalk-callback')
+  public async loginKakaotalkCallback(@Body() {code}: KakaoCallbackDto) {
+    return await this.authService.loginKakaotalkCallback(code);
+  }
+
+  @ApiOperation({ summary: '로그아웃 - coming soon' })
+  @UseGuards(JwtRefreshGuard)
+  @ApiResponse(AuthResponse.logout[200])
+  @ApiResponse(AuthResponse.logout[400])
+  @Post('/logout')
+  public async logout(@Headers('refresh-token') refreshToken: string) {
+    return await this.authService.logout(refreshToken);
   }
 }
